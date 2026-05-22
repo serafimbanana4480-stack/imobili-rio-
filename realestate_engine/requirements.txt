@@ -1,0 +1,46 @@
+# ------------------------------------------------------------------------
+# Real Estate Opportunity Engine - slim runtime requirements (~200 MB).
+#
+# pyproject.toml is the source of truth. This file mirrors the base deps
+# for tools that don't read PEP 621 metadata.
+#
+# Optional extras (install only if you need them):
+#   pip install -e .[cv]    # ~200 MB  - image quality, pHash, YOLO
+#   pip install -e .[nlp]   # ~2 GB    - BERT sentiment, NER, summarisation
+#   pip install -e .[all]   # everything
+#   pip install -e .[dev]   # pytest, black, mypy, isort
+#
+# AI Deals (Ollama) needs no extra packages - just `ollama serve` running.
+# ------------------------------------------------------------------------
+
+aiohttp>=3.9.0
+alembic>=1.12.0
+apscheduler>=3.10.4
+curl-cffi>=0.6.0
+fastapi>=0.104.0
+fastapi-limiter>=0.1.6
+geopy>=2.4.0
+httpx>=0.25.0
+loguru>=0.7.0
+nodriver>=0.35
+numpy>=1.26.0
+pandas>=2.1.0
+prometheus-client>=0.19.0
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+python-multipart>=0.0.6
+python-telegram-bot>=20.7
+pyjwt>=2.8.0
+redis>=5.0.0
+requests>=2.31.0
+scikit-learn>=1.3.0
+shap>=0.45.0
+slowapi>=0.1.9
+sqlalchemy>=2.0.0
+statsmodels>=0.14.0
+streamlit>=1.28.0
+uvicorn>=0.24.0
+xgboost>=2.0.0
+lightgbm>=4.3.0
+rapidfuzz>=3.6.0
+optuna>=3.6.0

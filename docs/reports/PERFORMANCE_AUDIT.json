@@ -1,0 +1,110 @@
+{
+  "audit_timestamp": "2026-05-05T19:43:50.394908",
+  "system_info": {
+    "python_version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "platform": "win32"
+  },
+  "benchmarks": {
+    "normalization": {
+      "100": {
+        "time_total_s": 0.013,
+        "time_per_record_ms": 0.127,
+        "records_per_sec": 7857.89,
+        "memory_delta_mb": 0.06,
+        "peak_memory_mb": 0.06
+      },
+      "1000": {
+        "time_total_s": 0.077,
+        "time_per_record_ms": 0.077,
+        "records_per_sec": 12943.07,
+        "memory_delta_mb": 1.11,
+        "peak_memory_mb": 0.59
+      },
+      "10000": {
+        "time_total_s": 0.768,
+        "time_per_record_ms": 0.077,
+        "records_per_sec": 13013.57,
+        "memory_delta_mb": 13.34,
+        "peak_memory_mb": 5.87
+      }
+    },
+    "deduplication": {
+      "100": {
+        "time_total_s": 0.023,
+        "time_per_record_ms": 0.219,
+        "records_per_sec": 4558.88,
+        "memory_delta_mb": 0.01,
+        "peak_memory_mb": 0.03,
+        "input_count": 105,
+        "output_count": 48,
+        "duplicates_removed": 57,
+        "duplicate_rate": 54.29
+      },
+      "1000": {
+        "time_total_s": 0.201,
+        "time_per_record_ms": 0.192,
+        "records_per_sec": 5211.05,
+        "memory_delta_mb": 0.0,
+        "peak_memory_mb": 0.19,
+        "input_count": 1050,
+        "output_count": 475,
+        "duplicates_removed": 575,
+        "duplicate_rate": 54.76
+      },
+      "10000": {
+        "time_total_s": 2.102,
+        "time_per_record_ms": 0.2,
+        "records_per_sec": 4995.95,
+        "memory_delta_mb": 1.12,
+        "peak_memory_mb": 1.81,
+        "input_count": 10500,
+        "output_count": 4750,
+        "duplicates_removed": 5750,
+        "duplicate_rate": 54.76
+      }
+    },
+    "database": {
+      "raw_insert_10": {
+        "time_total_s": 7.404,
+        "time_per_record_ms": 740.42,
+        "records_per_sec": 1.35,
+        "memory_delta_mb": 0.66,
+        "peak_memory_mb": 0.2
+      },
+      "raw_insert_100": {
+        "time_total_s": 4.067,
+        "time_per_record_ms": 40.672,
+        "records_per_sec": 24.59,
+        "memory_delta_mb": 0.06,
+        "peak_memory_mb": 0.19
+      },
+      "raw_insert_500": {
+        "time_total_s": 11.645,
+        "time_per_record_ms": 23.289,
+        "records_per_sec": 42.94,
+        "memory_delta_mb": 0.05,
+        "peak_memory_mb": 0.8
+      }
+    },
+    "scrapers": {
+      "imovirtual": {
+        "listings_scraped": 283,
+        "time_total_s": 26.833,
+        "time_per_page_s": 26.833,
+        "time_per_listing_ms": 94.817,
+        "memory_delta_mb": 39.81,
+        "peak_memory_mb": 35.47,
+        "success_rate": 100.0
+      },
+      "casa_sapo": {
+        "listings_scraped": 53,
+        "time_total_s": 31.108,
+        "time_per_page_s": 31.108,
+        "time_per_listing_ms": 586.938,
+        "memory_delta_mb": 5.45,
+        "peak_memory_mb": 7.99,
+        "success_rate": 100.0
+      }
+    }
+  }
+}

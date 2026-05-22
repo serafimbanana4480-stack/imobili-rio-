@@ -1,0 +1,246 @@
+"""Best opportunity selector for single best opportunity notification.
+
+Selects the single best opportunity based on hybrid criteria:
+- Composite score (score + discount + profit potential + location)
+- Realism verification
+- Deduplication (7-day exclusion period)
+"""
+from typing import Dict, Optional, List
+from datetime import datetime, timedelta, timezone
+from loguru import logger
+
+from realestate_engine.database.repository import DatabaseRepository
+from realestate_engine.database.models import Score, CleanListing, Valuation
+from realestate_engine.investor_tools import InvestorTools
+
+
+class BestOpportunitySelector:
+    """Selects the single best opportunity for notification."""
+
+    def __init__(self):
+        self.repo = DatabaseRepository()
+
+    def select_single_best(self, min_score: float = 7.0) -> Optional[Dict]:
+        """Select the single best opportunity for notification.
+
+        Args:
+            min_score: Minimum score threshold (default: 7.0)
+
+        Returns:
+            Dictionary with 'listing' and 'score' keys, or None if no opportunity found
+        """
+        logger.info(f"Selecting single best opportunity (min_score: {min_score})")
+
+        # Get all scores above threshold
+        scores = self.repo.get_top_scores(min_score=min_score, limit=5000)
+        logger.info(f"Found {len(scores)} scores above threshold")
+
+        if not scores:
+            logger.info("No opportunities above threshold")
+            return None
+
+        # Filter and score each opportunity
+        scored_opportunities = []
+        for score in scores:
+            listing = score.listing
+            if not listing:
+                continue
+
+            # Check if recently notified (7-day exclusion)
+            if self._check_recently_notified(listing.id):
+                logger.debug(f"Skipping {listing.id}: notified in last 7 days")
+                continue
+
+            # Verify realism
+            if not self._verify_realism(listing, score):
+                logger.debug(f"Skipping {listing.id}: failed realism check")
+                continue
+
+            # Calculate composite score
+            composite_score = self._calculate_composite_score(listing, score)
+
+            scored_opportunities.append({
+                "listing": listing,
+                "score": score,
+                "composite_score": composite_score,
+            })
+
+        if not scored_opportunities:
+            logger.info("No opportunities after filtering")
+            return None
+
+        # Sort by composite score descending
+        scored_opportunities.sort(key=lambda x: x["composite_score"], reverse=True)
+
+        # Select the best one
+        best = scored_opportunities[0]
+        logger.info(
+            f"Selected best opportunity: {best['listing'].id} "
+            f"(score: {best['score'].score_total:.1f}, "
+            f"composite: {best['composite_score']:.1f})"
+        )
+
+        return best
+
+    def _calculate_composite_score(self, listing: CleanListing, score: Score) -> float:
+        """Calculate composite score based on multiple factors.
+
+        Composite score formula:
+        - 30% current score
+        - 40% discount (20% discount = 8 points)
+        - 30% profit potential (normalized)
+        - 10% location score
+
+        Returns:
+            Composite score (0-100)
+        """
+        # Base score (30% weight)
+        base_score = score.score_total * 3.0  # 10/10 → 30 points
+
+        # Discount (40% weight)
+        discount_pct = 0.0
+        if listing.valuations:
+            discount_pct = listing.valuations[0].discount * 100 if listing.valuations[0].discount else 0.0
+        discount_score = min(discount_pct * 2.0, 40.0)  # 20% discount = 40 points (max)
+
+        # Profit potential (30% weight)
+        profit_score = 0.0
+        if listing.valuations and listing.valuations[0].discount:
+            valuation = listing.valuations[0]
+            profit_metrics = InvestorTools.calculate_deal_profit(
+                purchase_price=listing.preco_pedido or 0,
+                estimated_sale_price=valuation.valor_justo,
+                estimated_monthly_rent=None,
+                area_m2=listing.area_util_m2,
+                location_tier=self._get_location_tier(listing),
+                renovation_cost=self._estimate_renovation_cost(listing),
+                holding_period_years=5,
+                annual_appreciation_pct=max(0.0, (listing.ine_tendencia_mensal or 0) * 12 * 100),
+            )
+            adjusted_profit = profit_metrics.get("risk_adjusted_profit", valuation.valor_justo - listing.preco_pedido)
+
+            # Normalize: 50k profit = 15 points, 100k profit = 30 points
+            profit_score = min((max(0.0, adjusted_profit) / 50000.0) * 15.0, 30.0)
+
+        # Location score (10% weight)
+        location_score = score.score_location  # Already 0-10
+
+        # Calculate composite
+        composite = base_score + discount_score + profit_score + location_score
+        return round(composite, 1)
+
+    def _verify_realism(self, listing: CleanListing, score: Score) -> bool:
+        """Verify if the opportunity is realistic.
+
+        Checks:
+        - Discount > 30% → likely error/ruin
+        - Profit > 100k€ → verify valuation confidence
+        - Condition score < 3.0 → penalize if not renovable
+        - Critical red flags → exclude
+
+        Returns:
+            True if realistic, False otherwise
+        """
+        # Check discount
+        if listing.valuations and listing.valuations[0].discount:
+            discount_pct = listing.valuations[0].discount * 100
+            if discount_pct > 30.0:
+                logger.warning(f"Discount too high: {discount_pct}% for {listing.id}")
+                return False
+
+        # Check profit potential
+        if listing.valuations and listing.valuations[0].discount:
+            valuation = listing.valuations[0]
+            profit_metrics = InvestorTools.calculate_deal_profit(
+                purchase_price=listing.preco_pedido or 0,
+                estimated_sale_price=valuation.valor_justo,
+                estimated_monthly_rent=None,
+                area_m2=listing.area_util_m2,
+                location_tier=self._get_location_tier(listing),
+                renovation_cost=self._estimate_renovation_cost(listing),
+                holding_period_years=5,
+                annual_appreciation_pct=max(0.0, (listing.ine_tendencia_mensal or 0) * 12 * 100),
+            )
+            gross_profit = valuation.valor_justo - listing.preco_pedido
+            adjusted_profit = profit_metrics.get("risk_adjusted_profit", gross_profit)
+
+            if gross_profit > 100000:  # > 100k€
+                # Check valuation confidence
+                confidence = valuation.confianca or 0.0
+                if confidence < 0.6:
+                    logger.warning(f"High profit but low confidence: {gross_profit}€ for {listing.id}")
+                    return False
+
+            if adjusted_profit < 0:
+                logger.warning(f"Negative risk-adjusted profit for {listing.id}: {adjusted_profit}")
+                return False
+
+        # Check condition
+        if score.score_condition < 3.0:
+            # Allow if it's renovable (has renovation year or "por renovar" in description)
+            if not (listing.ano_renovacao or
+                    (listing.descricao and "renov" in listing.descricao.lower())):
+                logger.warning(f"Low condition score and not renovable: {listing.id}")
+                return False
+
+        # Check critical red flags
+        if score.red_flags:
+            for flag in score.red_flags:
+                if "🚨" in flag:  # Critical flag
+                    logger.warning(f"Critical red flag: {flag} for {listing.id}")
+                    return False
+
+        return True
+
+    @staticmethod
+    def _get_location_tier(listing: CleanListing) -> str:
+        """Map a listing location into a rough rental tier for ROI estimates."""
+        freguesia = (listing.freguesia or "").lower()
+        concelho = (listing.concelho or "").lower()
+        premium = {"foz do douro", "nevogilde", "massarelos", "ald oar", "foz", "lordelo"}
+        central = {"cedofeita", "bonfim", "ramalde", "paranhos", "lordelo do ouro"}
+        peripheral = {"gondomar", "valongo", "maia", "gaia", "vila nova de gaia"}
+
+        if any(name in freguesia for name in premium) or "porto" in concelho and "foz" in freguesia:
+            return "premium"
+        if any(name in freguesia for name in central):
+            return "central"
+        if any(name in freguesia for name in peripheral) or "gaia" in concelho:
+            return "peripheral"
+        return "average"
+
+    @staticmethod
+    def _estimate_renovation_cost(listing: CleanListing) -> float:
+        """Estimate a conservative renovation cost when the property needs work."""
+        estado = (listing.estado or "").lower()
+        if "novo" in estado or "renov" in estado or "remodel" in estado:
+            return 0.0
+        area = listing.area_util_m2 or 0
+        if area <= 0:
+            return 0.0
+        return area * 250.0
+
+    def _check_recently_notified(self, listing_id: str) -> bool:
+        """Check if listing was notified in the last 7 days.
+
+        Args:
+            listing_id: Listing ID to check
+
+        Returns:
+            True if notified in last 7 days, False otherwise
+        """
+        # Get notifications for this listing
+        notifications = self.repo.get_notifications_by_listing(listing_id)
+
+        if not notifications:
+            return False
+
+        # Check if any notification was sent in the last 7 days
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+
+        for notif in notifications:
+            if notif.created_at and notif.created_at > seven_days_ago:
+                if notif.status == "sent":
+                    return True
+
+        return False

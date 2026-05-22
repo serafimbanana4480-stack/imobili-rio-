@@ -1,0 +1,148 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "realestate-engine"
+version = "1.0.0"
+description = "Real Estate Opportunity Engine - Automated property valuation and opportunity detection for Portuguese real estate market"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Real Estate Engine Team"}
+]
+keywords = ["real estate", "valuation", "scraping", "investment", "portugal"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+dependencies = [
+    "aiohttp>=3.9.0",
+    "apscheduler>=3.10.4",
+    "curl-cffi>=0.6.0",
+    "fastapi>=0.104.0",
+    "fastapi-limiter>=0.1.6",
+    "geopy>=2.4.0",
+    "httpx>=0.25.0",
+    "loguru>=0.7.0",
+    "nodriver>=0.35",
+    "numpy>=1.26.0",
+    "pandas>=2.1.0",
+    "prometheus-client>=0.19.0",
+    "pydantic>=2.5.0",
+    "python-dotenv>=1.0.0",
+    "python-telegram-bot>=20.7",
+    "redis>=5.0.0",
+    "requests>=2.31.0",
+    "plotly>=5.20.0",
+    "scikit-learn>=1.3.0",
+    "slowapi>=0.1.9",
+    "sqlalchemy>=2.0.0",
+    "streamlit>=1.28.0",
+    "uvicorn>=0.24.0",
+    "xgboost>=2.0.0",
+    "shap>=0.45.0",
+    "alembic>=1.12.0",
+    "statsmodels>=0.14.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0",
+    "isort>=5.12.0",
+]
+heavy = [
+    "spacy>=3.7.0",
+    "textblob>=0.17.0",
+    "catboost>=1.2.0",
+    "lightgbm>=4.3.0",
+    "rapidfuzz>=3.6.0",
+    "optuna>=3.6.0",
+]
+# Computer Vision extras: image quality, similarity (pHash), room detection.
+# Adds ~200 MB. Required to enable enrich_image_quality / enrich_image_similarity.
+cv = [
+    "opencv-python>=4.8.0",
+    "pillow>=10.0.0",
+    "imagehash>=4.3.0",
+    "ultralytics>=8.0.0",
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+]
+# Advanced NLP extras: BERT sentiment, NER, summarisation.
+# Adds ~2 GB (transformers + torch weights). Required for enrich_bert_sentiment etc.
+nlp = [
+    "transformers>=4.30.0",
+    "accelerate>=0.20.0",
+    "sentencepiece>=0.1.99",
+    "torch>=2.0.0",
+]
+# Local LLM client (Ollama) for the AI deals view. Lightweight: only httpx
+# (already a base dep). Listed for documentation; no extra packages required.
+ai = []
+# Convenience: install everything.
+all = [
+    "opencv-python>=4.8.0",
+    "pillow>=10.0.0",
+    "imagehash>=4.3.0",
+    "ultralytics>=8.0.0",
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "transformers>=4.30.0",
+    "accelerate>=0.20.0",
+    "sentencepiece>=0.1.99",
+    "spacy>=3.7.0",
+    "textblob>=0.17.0",
+    "catboost>=1.2.0",
+    "lightgbm>=4.3.0",
+    "rapidfuzz>=3.6.0",
+    "optuna>=3.6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/realestate-engine"
+Repository = "https://github.com/yourusername/realestate-engine"
+Issues = "https://github.com/yourusername/realestate-engine/issues"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["realestate_engine*"]
+
+[tool.setuptools.package-data]
+realestate_engine = ["*.txt", "*.ini"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+markers = [
+    "online: requires live internet access to a portal (skipped in offline CI)",
+]
