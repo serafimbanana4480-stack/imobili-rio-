@@ -38,7 +38,7 @@ class Validator:
             return False
     
     @classmethod
-    async def validate(cls, listing: Dict, validate_url_flag: bool = False) -> List[str]:
+    def validate(cls, listing: Dict, validate_url_flag: bool = False) -> List[str]:
         """Validate a listing and return list of errors.
         
         Args:
@@ -61,8 +61,15 @@ class Validator:
         # URL validation (optional, can be slow)
         if validate_url_flag:
             url = listing.get("source_url", "")
-            if url and not await cls.validate_url(url):
-                errors.append(f"URL not accessible: {url}")
+            if url:
+                try:
+                    import asyncio
+                    loop = asyncio.get_running_loop()
+                    is_valid_url = loop.run_until_complete(cls.validate_url(url))
+                except RuntimeError:
+                    is_valid_url = asyncio.run(cls.validate_url(url))
+                if not is_valid_url:
+                    errors.append(f"URL not accessible: {url}")
         
         # Price sanity checks
         preco = listing.get("preco_pedido")
@@ -119,7 +126,7 @@ class Validator:
         return len(cls.validate(listing)) == 0
     
     @classmethod
-    async def validate_batch(cls, listings: List[Dict], validate_url_flag: bool = False) -> Tuple[List[Dict], List[Dict]]:
+    def validate_batch(cls, listings: List[Dict], validate_url_flag: bool = False) -> Tuple[List[Dict], List[Dict]]:
         """Validate batch of listings, return (valid, invalid).
         
         Args:
@@ -130,7 +137,7 @@ class Validator:
         invalid = []
         
         for listing in listings:
-            errors = await cls.validate(listing, validate_url_flag=validate_url_flag)
+            errors = cls.validate(listing, validate_url_flag=validate_url_flag)
             if errors:
                 listing["_validation_errors"] = errors
                 invalid.append(listing)

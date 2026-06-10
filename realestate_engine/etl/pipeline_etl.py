@@ -123,7 +123,7 @@ class PipelineETL:
         metrics.record_listings_processed("enrich", len(enriched))
         
         # Validate
-        valid, invalid = await self.validator.validate_batch(enriched, validate_url_flag=validate_urls)
+        valid, invalid = self.validator.validate_batch(enriched, validate_url_flag=validate_urls)
         metrics.record_listings_processed("validate", len(valid))
         
         # Load
