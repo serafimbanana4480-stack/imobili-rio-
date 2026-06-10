@@ -1,0 +1,15 @@
+[server]
+fileWatcherType = "none"
+headless = true
+
+# Dark theme is the primary surface (matches the in-app sidebar + cards).
+# This is the only way to get st.dataframe (canvas-rendered glide-data-grid)
+# to render rows on a dark background; CSS overrides do not reach the canvas.
+# Users can still flip to light from Streamlit's settings menu.
+[theme]
+base = "dark"
+primaryColor = "#3B82F6"
+backgroundColor = "#0F172A"
+secondaryBackgroundColor = "#1E293B"
+textColor = "#E2E8F0"
+font = "sans serif"

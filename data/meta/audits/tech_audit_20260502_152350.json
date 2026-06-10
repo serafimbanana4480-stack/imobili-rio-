@@ -1,0 +1,64 @@
+{
+  "generated_at": "2026-05-02T15:23:50.432917+00:00",
+  "project": "Real Estate Opportunity Engine",
+  "overall_status": "needs_hardening",
+  "findings": [
+    {
+      "component": "FastAPI",
+      "status": "good_choice",
+      "severity": "info",
+      "evidence": "FastAPI is present and remains suitable for typed async APIs.",
+      "recommendation": "Keep FastAPI as the API layer and focus on auth, pagination and observability.",
+      "confidence": 0.8,
+      "source": "local_static_rules"
+    },
+    {
+      "component": "Streamlit",
+      "status": "acceptable_for_internal_use",
+      "severity": "low",
+      "evidence": "Streamlit is optimized for internal analytical dashboards, not polished SaaS UX.",
+      "recommendation": "Keep for local/internal operation; plan Next.js only if selling as public SaaS.",
+      "confidence": 0.85,
+      "source": "local_static_rules"
+    },
+    {
+      "component": "API security config",
+      "status": "needs_attention",
+      "severity": "medium",
+      "evidence": ".env.example does not document JWT_SECRET_KEY.",
+      "recommendation": "Document JWT_SECRET_KEY, API_AUTH_REQUIRED and API_CORS_ORIGINS.",
+      "confidence": 0.9,
+      "source": "local_static_rules"
+    },
+    {
+      "component": "Docker Compose secrets",
+      "status": "insecure_default",
+      "severity": "high",
+      "evidence": "docker-compose.yml contains a static PostgreSQL password.",
+      "recommendation": "Move passwords to .env variables and provide safe examples only.",
+      "confidence": 0.95,
+      "source": "local_static_rules"
+    },
+    {
+      "component": "Modular architecture",
+      "status": "healthy",
+      "severity": "info",
+      "evidence": "Core production modules are present.",
+      "recommendation": "Continue incremental hardening instead of a risky rewrite.",
+      "confidence": 0.85,
+      "source": "local_static_rules"
+    }
+  ],
+  "stack_versions": {
+    "fastapi": "0.136.1",
+    "sqlalchemy": "2.0.49",
+    "pydantic": "2.13.3",
+    "streamlit": "1.56.0",
+    "xgboost": "3.2.0",
+    "shap": "0.51.0",
+    "redis": "7.4.0",
+    "nodriver": "0.48.1",
+    "slowapi": "0.1.9",
+    "uvicorn": "0.46.0"
+  }
+}

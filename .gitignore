@@ -1,0 +1,107 @@
+# =============================================================================
+# Real Estate Opportunity Engine — root .gitignore
+# Consolidates the previous realestate_engine/.gitignore + adds the
+# Windows-specific paths (venv312/) and runtime artefacts that were untracked
+# but needed exclusion before the first commit.
+# =============================================================================
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+build/
+dist/
+pip-log.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# ── Virtual environments ─────────────────────────────────────────────────────
+venv/
+venv312/
+.venv/
+env/
+ENV/
+
+# ── Environment files (NEVER commit secrets) ─────────────────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ── Databases ────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+
+# ── Data, cache, backups (regenerated locally) ───────────────────────────────
+data/db/*.db
+data/db/*.sqlite*
+data/cache/
+data/exports/
+data/backups/*.db
+data/backups/*.sql
+data/backups/*.tar.gz
+!data/.gitkeep
+!data/db/.gitkeep
+!data/cache/.gitkeep
+!data/exports/.gitkeep
+!data/backups/.gitkeep
+
+# ── Logs (rotation produces noise; keep only README inside logs/) ────────────
+logs/
+*.log
+*.log.*
+!logs/.gitkeep
+!logs/README.md
+!logs/scraping/README.md
+
+# ── Local debug scripts (one-off probes accumulated during development) ──────
+scripts/debug/
+scripts/__pycache__/
+
+# ── IDE / editor ─────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Streamlit local secrets ──────────────────────────────────────────────────
+.streamlit/secrets.toml
+
+# ── Terraform state ──────────────────────────────────────────────────────────
+realestate_engine/terraform/.terraform/
+realestate_engine/terraform/*.tfstate
+realestate_engine/terraform/*.tfstate.*
+realestate_engine/terraform/*.tfvars
+*.tfplan
+
+# ── Ollama model files (keep .modelfile recipes, not weights) ────────────────
+*.gguf
+*.bin
+*.safetensors
+
+# ── Misc artefacts ───────────────────────────────────────────────────────────
+*.bak
+*.tmp
+.tmp/
+node_modules/
+
+# ── Additional infra exclusions ──
+logs/archive/
+*.modelfile
