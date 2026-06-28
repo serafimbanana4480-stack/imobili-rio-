@@ -105,3 +105,16 @@ node_modules/
 # ── Additional infra exclusions ──
 logs/archive/
 *.modelfile
+
+# Ficheiros de ambiente e caches
+.env
+.env.*
+.pytest_cache/
+logs/
+htmlcov/
+venv*/
+__pycache__/
+data/*.csv
+data/*.parquet
+data/*.xlsx
+!data/.gitkeep
